@@ -193,7 +193,7 @@
 % The sans underscore is a third wider than a letter; inside \name it is as wide as a space
 % (stroke: the stem of l, 0.075 em; height: the font's own underscore, from -0.164 em)
 \newcommand{\name@us}{\leavevmode\rule[-0.164em]{\fontdimen2\font}{0.075em}}
-% No TeX ligatures in a name: -- stays two dashes, as in -Users-atcold--settings
+% No TeX ligatures in a name: -- stays two dashes, as in -Users-me--settings
 \newcommand{\name}[1]{\textsf{\addfontfeatures{Ligatures=TeXOff}\let\_\name@us#1}}
 % A name that is a link (ls -F marks it @): grey and underlined, inside \name
 \newcommand{\lk}[1]{{\color{black!50}\underline{#1}}}
