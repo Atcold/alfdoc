@@ -1,11 +1,29 @@
-# alfdoc style
+# alfdoc
 
-`alfdoc.sty` holds what every lesson and every other document of mine shares: the [Set3](https://colorbrewer2.org/#type=qualitative&scheme=Set3&n=12) and tone colours, `\name`, the `shell`, `out` and `python` listings, and the `insight`, `pane` and `cmdout` boxes. A lesson loads it with `\usepackage{alfdoc}`; its `.latexmkrc` adds `ensure_path('TEXINPUTS', '../style//');`. Boxes only one lesson uses stay in that lesson. Documents outside this repo load the same file through a link, `~/Library/texmf/tex/latex/alfdoc/alfdoc.sty` → `style/alfdoc.sty` in this repo, on each Mac.
+`alfdoc` gives every document of mine the same look, whatever project it comes from. `alfdoc.sty` holds the [Set3](https://colorbrewer2.org/#type=qualitative&scheme=Set3&n=12) and tone colours, `\name`, the listings and boxes, the logos (`\svglogo`), and the review marks. `revision.pl`, a Perl script that latexmk runs from its `.latexmkrc` (Perl too), writes each document's revision from git, a line in the title page's header and a `\revisiontable` at the end, and `boox-review.py` sends each successful build to an e-reader's review folder.
 
-Rules the package cannot enforce:
+```latex
+\usepackage{alfdoc}
+… \maketitle … \here[a new paragraph] … \revisiontable
+```
 
-- Every name of a thing (program, file, folder, host) in sans, with `\name{}`. Monospace only for literal text you would type or see printed. A name that is a link is underlined in grey, with `\lk{}` inside `\name{}`; nothing else is underlined.
-- TikZ defaults: plain `->` tips, default line width, labels clear of the arrows.
+## Install
+
+Link the files where LaTeX finds them, and run `revision.pl` from the document folder's `.latexmkrc`:
+
+```sh
+mkdir -p ~/Library/texmf/tex/latex/alfdoc && ln -s "$PWD"/{alfdoc.sty,revision.pl,boox-review.py} $_
+echo 'do "$ENV{HOME}/Library/texmf/tex/latex/alfdoc/revision.pl";' >> .latexmkrc
+```
+
+## Settings
+
+- `$jobname` in `.latexmkrc` makes the folder one lesson, whose main document's history covers the whole folder. Without it, every `.tex` file has its own history.
+- `$alfdoc_boox` in `~/.latexmkrc` names the e-reader's synced folder. Each build of a document with `\revisiontable` is copied to its `Review/`, unless the copy there carries notes. This needs `uv`.
+
+## Rules the package cannot enforce
+
+- Names of things (programs, files, folders, hosts) go in sans with `\name{}`, and monospace only for literal text. A name that is a link gets `\lk{}`, the only underline.
+- TikZ uses plain `->` tips, the default line width, and labels clear of the arrows.
 - Pinyin and characters are always tone-coloured.
-- Each feedback round marks every edit with `\here[what changed]`: a numbered hand in the margin with a tiny italic note. `\reviewfalse` hides them all.
-- From now on, a feedback round marks each kind of edit once, in the left margin: a green `\added`, an `\edited` ±, a red `\removed{text}` that shows the text struck out, each with an optional tiny note, *e.g.* `\edited[underline]`.
+- Each feedback round marks every edit with `\here[short][long]`: a hand in the margin, and the long note in the changes box under the title. `\reviewfalse` hides both.
