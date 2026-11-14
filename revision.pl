@@ -1,8 +1,6 @@
-# Revision line and table from git, for alfdoc. A lesson's .latexmkrc runs it with
-#   do '../style/revision.pl';
-# and any other document's with
+# Revision line and table from git, for alfdoc. A document folder's .latexmkrc runs it with
 #   do "$ENV{HOME}/Library/texmf/tex/latex/alfdoc/revision.pl";
-# (or the copy a public repo ships next to its alfdoc.sty) after setting $out_dir.
+# after setting $out_dir, or through a bootstrap that fetches alfdoc when it is not installed.
 # With $jobname set, as in a lesson, the main document's <jobname>.rev comes from every commit that
 # touched the folder, and another document X.tex there, built with -jobname=<folder>-X, gets
 # <folder>-X.rev from the commits that touched X.tex alone. Without $jobname, as in a folder of
@@ -105,8 +103,7 @@ if ($jobname) {
 # build goes to its Review folder through boox-review.py, which holds it while notes are waiting.
 if ($alfdoc_boox) {
   my $here = (Cwd::abs_path(__FILE__) =~ s{/[^/]*$}{}r);
-  my $script = -e "$here/boox-review.py" ? "$here/boox-review.py"
-    : "$ENV{HOME}/Library/texmf/tex/latex/alfdoc/boox-review.py";
+  my $script = "$here/boox-review.py";
   add_hook('compile_end', sub {
     our ($compile_status, $root_filename);
     return if $compile_status > 1;  # 0 clean, 1 with warnings
