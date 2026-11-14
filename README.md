@@ -26,4 +26,4 @@ echo 'do "$ENV{HOME}/Library/texmf/tex/latex/alfdoc/revision.pl";' >> .latexmkrc
 - Names of things (programs, files, folders, hosts) go in sans with `\name{}`, and monospace only for literal text. A name that is a link gets `\lk{}`, the only underline.
 - TikZ uses plain `->` tips, the default line width, and labels clear of the arrows.
 - Pinyin and characters are always tone-coloured.
-- Each feedback round marks every edit with `\here[short][long]`: a hand in the margin, and the long note in the changes box under the title. `\reviewfalse` hides both.
+- Each feedback round marks every edit with `\here[short][long]`: a hand in the margin, and the long note in the changes box, which takes a page of its own before the title, so the document keeps the layout it will have once the round closes. `\reviewfalse` hides both.

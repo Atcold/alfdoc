@@ -24,10 +24,12 @@
 \newcounter{here}
 \newcommand{\here@hand}[1]{\ifreview\refstepcounter{here}\label{here:\thehere}\tikz[remember picture,overlay,baseline]{
   \node[anchor=east, inner sep=0pt, font=\small\bfseries\color{red!85!black}] (here@h)
-    at ([xshift=1.95cm]current page.west |- 0,0.3em) {\thehere\,\pgfornament[height=0.9em]{152}};
+    at ([xshift=1.9cm]current page.west |- 0,0.3em) {\thehere\,\pgfornament[height=0.9em]{152}};
   \if\relax\detokenize{#1}\relax\else
-    \node[anchor=north east, inner sep=0pt, text width=1.7cm, align=right,
-      font=\tiny\itshape\color{red!85!black}] at ([yshift=-1.5pt]here@h.south east) {#1};
+    % half the margin wide, wrapped at spaces only: a short note takes two lines, not one long one
+    % Review: “point 4 looks good (1/2 the margin, 2 lines), point 6 looks bad (full margin, 1 line).”
+    \node[anchor=north east, inner sep=0pt, text width=1.1cm, align=right,
+      font=\tiny\itshape\color{red!85!black}, execute at begin node={\lefthyphenmin=62 }] at ([yshift=-1.5pt]here@h.south east) {#1};
   \fi}\fi}
 % \here[short][long]: the short note goes under the hand, in tiny italic, and the long one, which
 % defaults to the short, goes into the changes box under the title. Keeps the space a control word
@@ -120,35 +122,56 @@
     \renewcommand{\headrulewidth}{0pt}}
   \AtBeginDocument{\pagestyle{empty}\thispagestyle{plain}}}{}  % the first page, with or without \maketitle
 % Review: “The dates in the table are all misaligned.” (weekday, day, month: three columns)
-\newcommand{\revisiontable}{\section*{Revisions}
+% During a round the table sits on the changes page, below the box, and \revisiontable at the end
+% stays empty; once the round closes (no hands), the table is back at the end.
+% Review: “Do we want to place the revision table there, when that page is present? And move it to
+% the end, only when complete?”
+\newif\ifalfdoc@tableshown
+\newcommand{\revisiontable}{\ifalfdoc@tableshown\else\alfdoc@revtable\fi}
+\newcommand{\alfdoc@revtable}{\section*{Revisions}
   {\footnotesize\begin{tabularx}{\textwidth}{@{}r c@{~}r@{~}c l >{\raggedright\arraybackslash}X@{}}
     \toprule & \multicolumn{3}{l}{Date} & Commit & Change\\ \midrule \alfdoc@rows \bottomrule
   \end{tabularx}\par}}  % full text width: the Change column takes the rest
 
 % This revision's changes, one item per numbered hand, in the same order: a box under the title,
-% filled from the hands' long notes. It appears by itself after \maketitle while \reviewtrue and
-% there is at least one hand.
+% filled from the hands' long notes. It appears by itself on a page of its own, before the title,
+% while \reviewtrue and there is at least one hand, so the document below keeps its final layout.
+% Review: “do we want to lead with the rev changes, and then have the second page start with the title
+% and the hands? So, we avoid messing up the layout with the leading table.”
 \newtcolorbox{alfdoc@changesbox}{enhanced jigsaw, opacityback=0, colframe=red!85!black, boxrule=0.6pt, arc=2pt,
   opacitybacktitle=0, coltitle=red!85!black, fonttitle=\small\bfseries,
   title={\@ifundefined{alfdoc@revnum}{Changes}{Changes in revision \alfdoc@revnum}}}
+% The box page repeats the document's \title, or its file name when it sets none.
+% Review: “Hmm... let's repeat the title on page 1.”
+\newcommand{\alfdoc@title}{\jobname}
+\let\alfdoc@pretitle\title\renewcommand{\title}[1]{\gdef\alfdoc@title{#1}\alfdoc@pretitle{#1}}
+% and its subtitle, \author and \date joined by a comma, either one left out when empty
+% Review: “And the subtitle.”
+\newcommand{\alfdoc@author}{}\newcommand{\alfdoc@date}{}
+\let\alfdoc@preauthor\author\renewcommand{\author}[1]{\gdef\alfdoc@author{#1}\alfdoc@preauthor{#1}}
+\let\alfdoc@predate\date\renewcommand{\date}[1]{\gdef\alfdoc@date{#1}\alfdoc@predate{#1}}
+\newcommand{\alfdoc@subtitle}{\alfdoc@author
+  \ifx\alfdoc@author\@empty\else\ifx\alfdoc@date\@empty\else, \fi\fi\alfdoc@date}
 \newcommand{\alfdoc@changes}{\ifreview\ifx\alfdoc@changelist\@empty\else
+  {\noindent\LARGE\bfseries\alfdoc@title\par}\vspace{1mm}{\noindent\alfdoc@subtitle\par}\medskip
   \begin{alfdoc@changesbox}\small
   \begin{list}{\textbf{\color{red!85!black}\arabic{enumi}}}{\usecounter{enumi}%
     \setlength{\leftmargin}{1.5em}\setlength{\itemsep}{0pt}\setlength{\topsep}{0pt}}
   \alfdoc@changelist
   \end{list}\smallskip
-  Earlier revisions are in the table at the end, and each round's details in the project note's log.
-  \end{alfdoc@changesbox}\fi\fi}
-\AddToHook{cmd/maketitle/after}{\alfdoc@changes}
+  Earlier revisions are in the table below, and each round's details in the project note's log.
+  \end{alfdoc@changesbox}%
+  \ifx\alfdoc@rows\@empty\else\alfdoc@revtable\global\alfdoc@tableshowntrue\fi\clearpage\fi\fi}
+\AddToHook{begindocument/end}{\alfdoc@changes}
 
 % Diff marks: + added, ± edited, − removed, in the left margin level with the line, each with an
 % optional tiny note. One mark per kind of edit, not one per change.
 \newcommand{\diff@mark}[3]{\ifreview\tikz[remember picture,overlay,baseline]{
   \node[anchor=east, inner sep=0pt, font=\bfseries\color{#1}] (diff@m)
-    at ([xshift=1.95cm]current page.west |- 0,0.3em) {\ensuremath{#2}};
+    at ([xshift=1.9cm]current page.west |- 0,0.3em) {\ensuremath{#2}};
   \if\relax\detokenize{#3}\relax\else
-    \node[anchor=north east, inner sep=0pt, text width=1.7cm, align=right,
-      font=\tiny\itshape\color{#1}] at ([yshift=-1.5pt]diff@m.south east) {#3};
+    \node[anchor=north east, inner sep=0pt, text width=1.1cm, align=right,
+      font=\tiny\itshape\color{#1}, execute at begin node={\lefthyphenmin=62 }] at ([yshift=-1.5pt]diff@m.south east) {#3};
   \fi}\fi}
 \newcommand{\diff@put}[3]{%
   \ifvmode\leavevmode\let\here@next\ignorespaces
