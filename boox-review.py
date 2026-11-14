@@ -3,8 +3,8 @@
   boox-review.py <built.pdf> <name> <boox folder>
 
 The copy goes to <boox>/Review/<name>.pdf. A Review copy that holds annotations or Skim notes
-keeps them: the new build waits until they are read and cleared. A build identical in text to the
-Review copy is left out, so the reader keeps its place, and so is a build whose revision line
+keeps them: the new build waits until they are read and cleared. A build identical in text and
+layout to the Review copy is left out, so the reader keeps its place, and so is a build whose revision line
 matches the copy in <boox>/Finished/.
 """
 import pathlib, shutil, subprocess, sys
@@ -22,6 +22,13 @@ def say(msg):
 def text(path):
     with pymupdf.open(path) as doc:
         return [page.get_text() for page in doc]
+
+
+def layout(path):
+    """Where every word and drawing sits, so a build that only moves things still counts as new."""
+    with pymupdf.open(path) as doc:
+        return [([tuple(round(c, 1) for c in w[:4]) + (w[4],) for w in page.get_text('words')],
+                 [tuple(round(c, 1) for c in d['rect']) for d in page.get_drawings()]) for page in doc]
 
 
 def revision(pages):
@@ -42,7 +49,7 @@ if finished.exists() and line and 'draft' not in line and revision(text(finished
 if review.exists():
     if n := notes(review):
         sys.exit(say(f'held, the Review copy has {n} note(s) waiting to be read'))
-    if text(review) == built:
+    if text(review) == built and layout(review) == layout(pdf):
         sys.exit(say('unchanged'))
 review.parent.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(pdf, review)
