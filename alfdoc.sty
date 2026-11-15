@@ -4,6 +4,9 @@
 \ProvidesPackage{alfdoc}
 
 \RequirePackage{fontspec}
+% Monospace stays Latin Modern Mono; a glyph it lacks (● ○ ◐ ✓, box drawing) comes from Menlo
+\directlua{luaotfload.add_fallback("alfdocmono", {"Menlo:mode=node;"})}
+\setmonofont{Latin Modern Mono}[RawFeature={fallback=alfdocmono}]
 \setsansfont{Latin Modern Sans}  % the default, named through fontspec so \name can switch its ligatures off
 \RequirePackage{xcolor}
 \RequirePackage[most]{tcolorbox}
